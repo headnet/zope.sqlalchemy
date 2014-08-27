@@ -14,6 +14,7 @@
 
 import transaction as zope_transaction
 from zope.interface import implementer
+from zope.interface import implements
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
 from transaction._transaction import Status as ZopeStatus
 from sqlalchemy.orm.exc import ConcurrentModificationError
@@ -53,12 +54,13 @@ _SESSION_STATE = {}  # a mapping of id(session) -> status
 # The two variants of the DataManager.
 #
 
-@implementer(ISavepointDataManager)
 class SessionDataManager(object):
     """Integrate a top level sqlalchemy session transaction into a zope transaction
 
     One phase variant.
     """
+
+    implements(ISavepointDataManager)
 
     def __init__(self, session, status, transaction_manager, keep_session=False):
         self.transaction_manager = transaction_manager
@@ -171,8 +173,9 @@ class TwoPhaseSessionDataManager(SessionDataManager):
         return "sqlalchemy.twophase:%d" % id(self.tx)
 
 
-@implementer(IDataManagerSavepoint)
 class SessionSavepoint:
+
+    implements(IDataManagerSavepoint)
 
     def __init__(self, session):
         self.session = session
@@ -271,7 +274,7 @@ def register(session, initial_state=STATUS_ACTIVE,
     from sqlalchemy import event
 
     ext = ZopeTransactionExtension(
-        initial_state=initial_state,         
+        initial_state=initial_state,
         transaction_manager=transaction_manager,
         keep_session=keep_session,
     )
